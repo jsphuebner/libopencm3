@@ -308,6 +308,7 @@ uint32_t flash_get_page_size(void)
 	
 	switch (idcode)
 	{
+		default: //Fall back to 1k
 		case 0x412:
 		case 0x410:
 			page_size = 1024;
