@@ -63,6 +63,8 @@ void __attribute__ ((weak)) reset_handler(void)
 {
 	volatile unsigned *src, *dest;
 	funcp_t *fp;
+	__asm__ ("ldr sp,=_stack;"); /* set the stack pointer. Just in case the bootloader did not set it correctly. 
+                                    Was discussed here: https://github.com/uhi22/ccs32clara/issues/17 */
 
 	for (src = &_data_loadaddr, dest = &_data;
 		dest < &_edata;
@@ -73,6 +75,14 @@ void __attribute__ ((weak)) reset_handler(void)
 	while (dest < &_ebss) {
 		*dest++ = 0;
 	}
+    
+    /* To measure the used stack size later, we apply "stack painting" here.
+       This means, will fill the complete range between end of the used RAM until
+       the end of the RAM with the pattern 0xA5. */
+    #define STACK_FILL_PATTERN 0xA5A5A5A5
+    while (dest < &_stack) {
+		*dest++ = STACK_FILL_PATTERN;
+    }
 
 	/* Ensure 8-byte alignment of stack pointer on interrupts */
 	/* Enabled by default on most Cortex-M parts, but not M3 r1 */
